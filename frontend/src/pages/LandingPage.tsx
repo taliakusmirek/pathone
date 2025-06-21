@@ -92,10 +92,15 @@ const LandingPage: React.FC = () => {
       <nav className="px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <Rocket className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">PathOne</span>
+            <button 
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                <Rocket className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">PathOne</span>
+            </button>
           </div>
           <div className="hidden md:flex items-center space-x-6">
             <a href="#how-it-works" className="text-gray-600 hover:text-gray-900">How it Works</a>

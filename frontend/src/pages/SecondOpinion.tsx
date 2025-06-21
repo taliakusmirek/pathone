@@ -107,13 +107,15 @@ const SecondOpinion: React.FC = () => {
       <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => navigate('/result')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Results
-          </button>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Get Expert Legal Review
           </h1>
