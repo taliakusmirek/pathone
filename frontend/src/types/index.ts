@@ -20,6 +20,10 @@ export interface EligibilityData {
   publications: string[];
   references: string[];
   usContacts: string[];
+  documents: {
+    resume: File | null;
+    supportingDocuments: File[];
+  };
 }
 
 export interface EligibilityResult {

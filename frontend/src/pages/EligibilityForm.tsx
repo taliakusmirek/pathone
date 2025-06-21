@@ -7,6 +7,86 @@ interface EligibilityFormProps {
   embedded?: boolean;
 }
 
+// Custom component for comma-separated fields
+const CommaSeparatedInput: React.FC<{
+  value: string[];
+  onChange: (value: string[]) => void;
+  placeholder: string;
+  label: string;
+}> = ({ value, onChange, placeholder, label }) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      if (inputValue.trim()) {
+        const newArray = [...value, inputValue.trim()];
+        onChange(newArray);
+        setInputValue('');
+      }
+    }
+  };
+
+  const handleBlur = () => {
+    if (inputValue.trim()) {
+      const newArray = [...value, inputValue.trim()];
+      onChange(newArray);
+      setInputValue('');
+    }
+  };
+
+  const removeItem = (index: number) => {
+    const newArray = value.filter((_, i) => i !== index);
+    onChange(newArray);
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label}
+      </label>
+      <div className="space-y-2">
+        <input
+          type="text"
+          className="input-field"
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+        />
+        {value.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {value.map((item, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
+              >
+                {item}
+                <button
+                  type="button"
+                  onClick={() => removeItem(index)}
+                  className="ml-2 text-primary-600 hover:text-primary-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-gray-500">
+          Type your entries and press Enter or comma to add them
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const EligibilityForm: React.FC<EligibilityFormProps> = ({ embedded = false }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -30,10 +110,14 @@ const EligibilityForm: React.FC<EligibilityFormProps> = ({ embedded = false }) =
     speakingExperience: [],
     publications: [],
     references: [],
-    usContacts: []
+    usContacts: [],
+    documents: {
+      resume: null,
+      supportingDocuments: []
+    }
   });
 
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   const steps = [
     { id: 1, title: 'Basic Info', description: 'Name, country, age' },
@@ -41,7 +125,8 @@ const EligibilityForm: React.FC<EligibilityFormProps> = ({ embedded = false }) =
     { id: 3, title: 'Startup Achievements', description: 'Funding, traction, awards' },
     { id: 4, title: 'Media & Press', description: 'Media coverage and press' },
     { id: 5, title: 'Speaking & Publications', description: 'Speaking experience and publications' },
-    { id: 6, title: 'References', description: 'References and US contacts' }
+    { id: 6, title: 'References', description: 'References and US contacts' },
+    { id: 7, title: 'Documents', description: 'Resume and supporting documents' }
   ];
 
   const handleInputChange = (field: string, value: any) => {
@@ -245,33 +330,25 @@ const EligibilityForm: React.FC<EligibilityFormProps> = ({ embedded = false }) =
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Awards & Recognition (comma-separated)
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                value={formData.startupAchievements?.awards?.join(', ') || ''}
-                onChange={(e) => handleInputChange('startupAchievements', {
+              <CommaSeparatedInput
+                value={formData.startupAchievements?.awards || []}
+                onChange={(value) => handleInputChange('startupAchievements', {
                   ...formData.startupAchievements,
-                  awards: e.target.value.split(',').map(a => a.trim()).filter(a => a)
+                  awards: value
                 })}
                 placeholder="e.g., YC W24, Forbes 30 Under 30, TechCrunch Disrupt Winner"
+                label="Awards & Recognition"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Patents (comma-separated)
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                value={formData.startupAchievements?.patents?.join(', ') || ''}
-                onChange={(e) => handleInputChange('startupAchievements', {
+              <CommaSeparatedInput
+                value={formData.startupAchievements?.patents || []}
+                onChange={(value) => handleInputChange('startupAchievements', {
                   ...formData.startupAchievements,
-                  patents: e.target.value.split(',').map(p => p.trim()).filter(p => p)
+                  patents: value
                 })}
                 placeholder="e.g., US Patent 1234567, International Patent 7654321"
+                label="Patents"
               />
             </div>
           </div>
@@ -280,77 +357,161 @@ const EligibilityForm: React.FC<EligibilityFormProps> = ({ embedded = false }) =
       case 4:
         return (
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Media Coverage & Press (comma-separated)
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                value={formData.media?.join(', ') || ''}
-                onChange={(e) => handleInputChange('media', e.target.value.split(',').map(m => m.trim()).filter(m => m))}
-                placeholder="e.g., TechCrunch, Forbes, The New York Times, Bloomberg"
-              />
-            </div>
+            <CommaSeparatedInput
+              value={formData.media || []}
+              onChange={(value) => handleInputChange('media', value)}
+              placeholder="e.g., TechCrunch, Forbes, The New York Times, Bloomberg"
+              label="Media Coverage & Press"
+            />
           </div>
         );
 
       case 5:
         return (
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Speaking Experience (comma-separated)
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                value={formData.speakingExperience?.join(', ') || ''}
-                onChange={(e) => handleInputChange('speakingExperience', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                placeholder="e.g., TEDx, SXSW, Web Summit, TechCrunch Disrupt"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Publications & Papers (comma-separated)
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                value={formData.publications?.join(', ') || ''}
-                onChange={(e) => handleInputChange('publications', e.target.value.split(',').map(p => p.trim()).filter(p => p))}
-                placeholder="e.g., Nature, Science, IEEE, ACM"
-              />
-            </div>
+            <CommaSeparatedInput
+              value={formData.speakingExperience || []}
+              onChange={(value) => handleInputChange('speakingExperience', value)}
+              placeholder="e.g., TEDx, SXSW, Web Summit, TechCrunch Disrupt"
+              label="Speaking Experience"
+            />
+            <CommaSeparatedInput
+              value={formData.publications || []}
+              onChange={(value) => handleInputChange('publications', value)}
+              placeholder="e.g., Nature, Science, IEEE, ACM"
+              label="Publications & Papers"
+            />
           </div>
         );
 
       case 6:
         return (
           <div className="space-y-6">
+            <CommaSeparatedInput
+              value={formData.references || []}
+              onChange={(value) => handleInputChange('references', value)}
+              placeholder="e.g., John Doe (CEO at TechCorp), Jane Smith (Professor at Stanford)"
+              label="Potential References"
+            />
+            <CommaSeparatedInput
+              value={formData.usContacts || []}
+              onChange={(value) => handleInputChange('usContacts', value)}
+              placeholder="e.g., Immigration lawyer, US employer, US university"
+              label="Existing US Contacts (optional)"
+            />
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Potential References (comma-separated)
+                Resume/CV
               </label>
-              <input
-                type="text"
-                className="input-field"
-                value={formData.references?.join(', ') || ''}
-                onChange={(e) => handleInputChange('references', e.target.value.split(',').map(r => r.trim()).filter(r => r))}
-                placeholder="e.g., John Doe (CEO at TechCorp), Jane Smith (Professor at Stanford)"
-              />
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary-400 transition-colors">
+                <div className="space-y-1 text-center">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    stroke="currentColor"
+                    fill="none"
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <div className="flex text-sm text-gray-600">
+                    <label
+                      htmlFor="resume-upload"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                    >
+                      <span>Upload a file</span>
+                      <input
+                        id="resume-upload"
+                        name="resume-upload"
+                        type="file"
+                        className="sr-only"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => handleInputChange('documents', {
+                          ...formData.documents!,
+                          resume: e.target.files?.[0] || null
+                        })}
+                      />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">PDF, DOC, or DOCX up to 10MB</p>
+                  {formData.documents?.resume && (
+                    <p className="text-sm text-green-600 font-medium">
+                      ✓ {formData.documents.resume.name}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Existing US Contacts (optional, comma-separated)
+                Supporting Documents (Optional)
               </label>
-              <input
-                type="text"
-                className="input-field"
-                value={formData.usContacts?.join(', ') || ''}
-                onChange={(e) => handleInputChange('usContacts', e.target.value.split(',').map(c => c.trim()).filter(c => c))}
-                placeholder="e.g., Immigration lawyer, US employer, US university"
-              />
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary-400 transition-colors">
+                <div className="space-y-1 text-center">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    stroke="currentColor"
+                    fill="none"
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <div className="flex text-sm text-gray-600">
+                    <label
+                      htmlFor="supporting-docs-upload"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                    >
+                      <span>Upload files</span>
+                      <input
+                        id="supporting-docs-upload"
+                        name="supporting-docs-upload"
+                        type="file"
+                        className="sr-only"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        multiple
+                        onChange={(e) => handleInputChange('documents', {
+                          ...formData.documents!,
+                          supportingDocuments: Array.from(e.target.files || [])
+                        })}
+                      />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG up to 10MB each</p>
+                  {formData.documents?.supportingDocuments && formData.documents.supportingDocuments.length > 0 && (
+                    <div className="text-sm text-green-600 font-medium">
+                      ✓ {formData.documents.supportingDocuments.length} file(s) selected
+                      <div className="text-xs text-gray-500 mt-1">
+                        {formData.documents.supportingDocuments.map((file, index) => (
+                          <div key={index}>{file.name}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Examples: Awards certificates, media articles, patents, publications, reference letters
+              </p>
             </div>
           </div>
         );
