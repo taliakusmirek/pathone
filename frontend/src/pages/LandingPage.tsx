@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle, Star, Users, Zap, TrendingUp, Clock, Sparkles, Rocket, Shield, Globe, FileText } from 'lucide-react';
+import { ArrowRight, CheckCircle, Star, Users, Zap, TrendingUp, Clock, Sparkles, Rocket, Shield, Globe, FileText, LogOut } from 'lucide-react';
+import useAuthStore from '../stores/authStore';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuthStore();
   const [isVisible, setIsVisible] = useState(false);
   const [stats, setStats] = useState({ success: 0, savings: 0, time: 0 });
   const [dotsExploded, setDotsExploded] = useState(false);
@@ -71,6 +73,19 @@ const LandingPage: React.FC = () => {
     navigate('/eligibility');
   };
 
+  const handleAuthAction = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
+  };
+
+  const handleSignOut = () => {
+    navigate('/');
+    logout();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
       {/* Navigation */}
@@ -85,7 +100,30 @@ const LandingPage: React.FC = () => {
           <div className="hidden md:flex items-center space-x-6">
             <a href="#how-it-works" className="text-gray-600 hover:text-gray-900">How it Works</a>
             <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
-            <button className="btn-secondary">Sign In</button>
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-3">
+                <button 
+                  onClick={handleAuthAction}
+                  className="btn-secondary"
+                >
+                  My Dashboard
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="text-gray-600 hover:text-red-600 transition-colors duration-150 p-2 rounded-lg hover:bg-gray-100"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={handleAuthAction}
+                className="btn-secondary"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </nav>

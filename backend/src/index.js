@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
+import eb1aRoutes from "./routes/eb1a.js";
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,9 @@ app.get("/api", (req, res) => {
 
 // Auth routes
 app.use("/api/auth", authRoutes);
+
+// EB1A assessment routes
+app.use("/api/eb1a", eb1aRoutes);
 
 // Error handling middleware
 app.use((err, req, res, _next) => {

@@ -9,6 +9,15 @@ type EligibilityResultType = {
   visaType: 'EB-1A' | 'O-1' | 'both' | 'none';
   reasoning: string[];
   nextSteps: string[];
+  criteriaMet: number[];
+};
+
+type AIAssessment = {
+  isEligible: boolean;
+  criteriaMet: number[];
+  reasoning: string;
+  confidence: number;
+  assessmentId?: number;
 };
 
 const EligibilityResult: React.FC = () => {
@@ -18,20 +27,58 @@ const EligibilityResult: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate AI processing
-    const simulateAIProcessing = async () => {
+    const processAssessment = async () => {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Mock AI assessment based on form data
       const formData = location.state?.formData as EligibilityData;
-      const mockResult = generateMockResult(formData);
-      setResult(mockResult);
+      const aiAssessment = location.state?.aiAssessment as AIAssessment;
+      
+      if (aiAssessment) {
+        // Use AI assessment results
+        const processedResult = processAIAssessment(aiAssessment, formData);
+        setResult(processedResult);
+      } else {
+        // Fallback to mock assessment
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const mockResult = generateMockResult(formData);
+        setResult(mockResult);
+      }
+      
       setLoading(false);
     };
 
-    simulateAIProcessing();
+    processAssessment();
   }, [location.state]);
+
+  const processAIAssessment = (aiAssessment: AIAssessment, formData: EligibilityData): EligibilityResultType => {
+    const status = aiAssessment.isEligible ? 'likely-eligible' : 'not-likely-eligible';
+    const visaType = aiAssessment.isEligible ? 'EB-1A' : 'none';
+    
+    // Convert AI reasoning to array format
+    const reasoning = aiAssessment.reasoning.split(';').map(r => r.trim()).filter(r => r);
+    
+    // Generate next steps based on eligibility
+    const nextSteps = aiAssessment.isEligible ? [
+      'Proceed with full EB-1A application package',
+      'Upload supporting documents',
+      'Connect with immigration lawyer for review',
+      'Prepare evidence for criteria met'
+    ] : [
+      'Focus on building stronger credentials',
+      'Consider alternative visa categories',
+      'Work with immigration consultant for guidance',
+      'Strengthen your profile with additional achievements'
+    ];
+
+    return {
+      status,
+      confidence: aiAssessment.confidence,
+      visaType,
+      reasoning,
+      nextSteps,
+      criteriaMet: aiAssessment.criteriaMet
+    };
+  };
 
   const generateMockResult = (formData: EligibilityData): EligibilityResultType => {
     // Simple scoring algorithm
@@ -106,7 +153,8 @@ const EligibilityResult: React.FC = () => {
       confidence: Math.round(confidence),
       visaType,
       reasoning,
-      nextSteps
+      nextSteps,
+      criteriaMet: []
     };
   };
 
@@ -159,6 +207,22 @@ const EligibilityResult: React.FC = () => {
     navigate('/paywall');
   };
 
+  const getCriteriaText = (criteriaNumber: number): string => {
+    const criteriaMap: Record<number, string> = {
+      1: "Receipt of nationally or internationally recognized prizes or awards for excellence",
+      2: "Membership in associations that require outstanding achievements",
+      3: "Published material about the individual in professional or major trade publications",
+      4: "Participation as a judge of others' work",
+      5: "Original contributions of major significance",
+      6: "Authorship of scholarly articles",
+      7: "Artistic exhibitions or showcases",
+      8: "Leading/critical role in distinguished organizations",
+      9: "High salary or remuneration",
+      10: "Commercial success in the performing arts"
+    };
+    return criteriaMap[criteriaNumber] || `Criteria ${criteriaNumber}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -183,10 +247,10 @@ const EligibilityResult: React.FC = () => {
             No data found
           </h2>
           <button 
-            onClick={() => navigate('/eligibility')}
+            onClick={() => navigate('/dashboard')}
             className="btn-primary"
           >
-            Start Eligibility Check
+            Go to Dashboard
           </button>
         </div>
       </div>
@@ -208,9 +272,11 @@ const EligibilityResult: React.FC = () => {
 
         {/* Result Card */}
         <div className="card mb-8">
-          <div className="text-center mb-6">
-            {getStatusIcon()}
-            <h2 className={`text-2xl font-bold mt-4 ${getStatusColor()}`}>
+          <div className="flex flex-col items-center justify-center text-center mb-6">
+            <div className="flex items-center justify-center mb-4">
+              {getStatusIcon()}
+            </div>
+            <h2 className={`text-2xl font-bold ${getStatusColor()}`}>
               {getStatusText()}
             </h2>
             <p className="text-gray-600 mt-2">
@@ -247,6 +313,27 @@ const EligibilityResult: React.FC = () => {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* EB1A Criteria Met */}
+          {result.criteriaMet && result.criteriaMet.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-900 mb-3">
+                EB1A Criteria Met ({result.criteriaMet.length}/10)
+              </h3>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <ul className="space-y-2">
+                  {result.criteriaMet.map((criteriaNumber) => (
+                    <li key={criteriaNumber} className="flex items-start">
+                      <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 text-sm font-medium">
+                        {criteriaNumber}
+                      </div>
+                      <span className="text-green-800">{getCriteriaText(criteriaNumber)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
@@ -290,10 +377,10 @@ const EligibilityResult: React.FC = () => {
           </button>
           
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="btn-secondary flex items-center justify-center"
           >
-            Back to Home
+            Back to Dashboard
           </button>
         </div>
 

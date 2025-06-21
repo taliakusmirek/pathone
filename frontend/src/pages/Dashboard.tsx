@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Download, 
@@ -9,8 +10,12 @@ import {
   Users, 
   Settings,
   Calendar,
-  MessageCircle
+  MessageCircle,
+  Search,
+  LogOut
 } from 'lucide-react';
+import EligibilityForm from './EligibilityForm';
+import useAuthStore from '../stores/authStore';
 
 interface ApplicationStatus {
   status: 'in-progress' | 'completed' | 'pending';
@@ -30,6 +35,8 @@ interface DownloadItem {
 }
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState('overview');
 
   const applicationStatus: ApplicationStatus[] = [
@@ -104,6 +111,13 @@ const Dashboard: React.FC = () => {
 
   const nextSteps = [
     {
+      title: 'Take Eligibility Assessment',
+      description: 'Complete our comprehensive EB-1A eligibility assessment',
+      action: 'Start Assessment',
+      icon: Search,
+      priority: 'high'
+    },
+    {
       title: 'Schedule Lawyer Consultation',
       description: 'Book a 1-hour consultation with your assigned lawyer',
       action: 'Schedule Now',
@@ -157,6 +171,11 @@ const Dashboard: React.FC = () => {
     console.log('Downloading:', item.name);
   };
 
+  const handleSignOut = () => {
+    navigate('/');
+    logout();
+  };
+
   const renderOverview = () => (
     <div className="space-y-6">
       {/* Status Overview */}
@@ -201,7 +220,14 @@ const Dashboard: React.FC = () => {
                     <p className="text-sm text-gray-600">{step.description}</p>
                   </div>
                 </div>
-                <button className="btn-primary text-sm px-4 py-2">
+                <button 
+                  className="btn-primary text-sm px-4 py-2"
+                  onClick={() => {
+                    if (step.title === 'Take Eligibility Assessment') {
+                      setActiveTab('eligibility');
+                    }
+                  }}
+                >
                   {step.action}
                 </button>
               </div>
@@ -224,6 +250,18 @@ const Dashboard: React.FC = () => {
           <div className="text-3xl font-bold text-warning-600 mb-2">15</div>
           <div className="text-gray-600">Days Remaining</div>
         </div>
+      </div>
+    </div>
+  );
+
+  const renderEligibility = () => (
+    <div className="space-y-6">
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">EB-1A Eligibility Assessment</h3>
+        <p className="text-gray-600 mb-6">
+          Take our comprehensive assessment to determine your eligibility for EB-1A extraordinary ability green card.
+        </p>
+        <EligibilityForm embedded={true} />
       </div>
     </div>
   );
@@ -356,6 +394,9 @@ const Dashboard: React.FC = () => {
               <button className="text-gray-600 hover:text-gray-900">
                 <Settings className="w-5 h-5" />
               </button>
+              <button className="text-gray-600 hover:text-gray-900" onClick={handleSignOut}>
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
@@ -374,6 +415,7 @@ const Dashboard: React.FC = () => {
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'overview', name: 'Overview', icon: Home },
+                { id: 'eligibility', name: 'Eligibility', icon: Search },
                 { id: 'downloads', name: 'Downloads', icon: Download },
                 { id: 'timeline', name: 'Timeline', icon: Clock },
                 { id: 'account', name: 'Account', icon: Settings }
@@ -401,6 +443,7 @@ const Dashboard: React.FC = () => {
         {/* Tab Content */}
         <div>
           {activeTab === 'overview' && renderOverview()}
+          {activeTab === 'eligibility' && renderEligibility()}
           {activeTab === 'downloads' && renderDownloads()}
           {activeTab === 'timeline' && renderTimeline()}
           {activeTab === 'account' && renderAccount()}

@@ -3,9 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { EligibilityData } from '../types';
 
-const EligibilityForm: React.FC = () => {
+interface EligibilityFormProps {
+  embedded?: boolean;
+}
+
+const EligibilityForm: React.FC<EligibilityFormProps> = ({ embedded = false }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<EligibilityData>>({
     user: {
       id: '',
@@ -56,12 +61,55 @@ const EligibilityForm: React.FC = () => {
     }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Submit form and navigate to results
+      // Submit form and call EB1A assessment API
+      await handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare data for API
+      const assessmentData = {
+        name: formData.user?.name || '',
+        countryOfOrigin: formData.user?.country || '',
+        achievements: formData
+      };
+
+      // Call EB1A assessment API
+      const response = await fetch('http://localhost:4000/api/eb1a/assess', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(assessmentData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Assessment failed');
+      }
+
+      const result = await response.json();
+      
+      // Navigate to results with AI assessment data
+      navigate('/result', { 
+        state: { 
+          formData,
+          aiAssessment: result.assessment,
+          assessmentId: result.assessment.assessmentId
+        } 
+      });
+    } catch (error) {
+      console.error('Assessment error:', error);
+      // Fallback to mock result if API fails
       navigate('/result', { state: { formData } });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -313,58 +361,62 @@ const EligibilityForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-6">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Am I qualified?
-          </h1>
-          <p className="text-gray-600">
-            Let's assess your eligibility for EB-1A or O-1 visas
-          </p>
-        </div>
+    <div className={embedded ? "" : "min-h-screen bg-gray-50 py-8"}>
+      <div className={embedded ? "" : "max-w-2xl mx-auto px-6"}>
+        {/* Header - Only show if not embedded */}
+        {!embedded && (
+          <div className="mb-8">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </button>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Am I qualified?
+            </h1>
+            <p className="text-gray-600">
+              Let's assess your eligibility for EB-1A or O-1 visas
+            </p>
+          </div>
+        )}
 
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                  step.id <= currentStep 
-                    ? 'bg-primary-600 text-white' 
-                    : 'bg-gray-200 text-gray-400'
-                }`}>
-                  {step.id < currentStep ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : (
-                    <span className="text-sm font-medium">{step.id}</span>
+        {/* Progress Steps - Only show if not embedded */}
+        {!embedded && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              {steps.map((step, index) => (
+                <div key={step.id} className="flex items-center">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                    step.id <= currentStep 
+                      ? 'bg-primary-600 text-white' 
+                      : 'bg-gray-200 text-gray-400'
+                  }`}>
+                    {step.id < currentStep ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <span className="text-sm font-medium">{step.id}</span>
+                    )}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className={`w-16 h-0.5 mx-2 ${
+                      step.id < currentStep ? 'bg-primary-600' : 'bg-gray-200'
+                    }`} />
                   )}
                 </div>
-                {index < steps.length - 1 && (
-                  <div className={`w-16 h-0.5 mx-2 ${
-                    step.id < currentStep ? 'bg-primary-600' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <span className="text-sm text-gray-600">
+                Step {currentStep} of {totalSteps}: {steps[currentStep - 1].title}
+              </span>
+            </div>
           </div>
-          <div className="mt-4 text-center">
-            <span className="text-sm text-gray-600">
-              Step {currentStep} of {totalSteps}: {steps[currentStep - 1].title}
-            </span>
-          </div>
-        </div>
+        )}
 
         {/* Form Content */}
-        <div className="card">
+        <div className={embedded ? "" : "card"}>
           {renderStepContent()}
         </div>
 
@@ -384,10 +436,20 @@ const EligibilityForm: React.FC = () => {
           </button>
           <button
             onClick={handleNext}
-            className="btn-primary flex items-center"
+            disabled={isSubmitting}
+            className={`btn-primary flex items-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {currentStep === totalSteps ? 'Submit & Check Eligibility' : 'Next'}
-            <ArrowRight className="w-4 h-4 ml-2" />
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Assessing...
+              </>
+            ) : (
+              <>
+                {currentStep === totalSteps ? 'Submit & Check Eligibility' : 'Next'}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
           </button>
         </div>
       </div>

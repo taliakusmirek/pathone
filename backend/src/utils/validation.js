@@ -21,6 +21,32 @@ export const refreshTokenSchema = z.object({
     refreshToken: z.string().min(1, "Refresh token is required"),
 });
 
+// EB1A Assessment validation schema
+export const eb1aAssessmentSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    countryOfOrigin: z.string().min(1, "Country of origin is required"),
+    achievements: z.union([
+        z.string(),
+        z.array(z.string()),
+        z.object({
+            user: z.object({
+                educationLevel: z.string().optional()
+            }).optional(),
+            startupAchievements: z.object({
+                funding: z.string().optional(),
+                traction: z.string().optional(),
+                awards: z.array(z.string()).optional(),
+                patents: z.array(z.string()).optional()
+            }).optional(),
+            media: z.array(z.string()).optional(),
+            speakingExperience: z.array(z.string()).optional(),
+            publications: z.array(z.string()).optional(),
+            references: z.array(z.string()).optional(),
+            usContacts: z.array(z.string()).optional()
+        })
+    ])
+});
+
 /**
  * Validation middleware factory
  * @param {z.ZodSchema} schema - Zod validation schema

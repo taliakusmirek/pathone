@@ -48,4 +48,18 @@ model Resume {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("resumes")
+}
+
+model EB1AAssessment {
+  id              Int      @id @default(autoincrement())
+  name            String
+  countryOfOrigin String   @map("country_of_origin")
+  achievements    String   // JSON string for SQLite compatibility
+  isEligible      Boolean  @map("is_eligible")
+  criteriaMet     String   // JSON array string
+  reasoning       String
+  confidence      Int
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  @@map("eb1a_assessments")
 } 
