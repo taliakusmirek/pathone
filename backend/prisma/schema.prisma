@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  passHash  String   @map("pass_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  submissions Submission[]
+  resumes     Resume[]
+  
+  @@map("users")
+}
+
+model Submission {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  answers   Json
+  verdict   String?  // "eligible" | "not_eligible" | "pending"
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("submissions")
+}
+
+model Resume {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  fileName   String   @map("file_name")
+  mimeType   String   @map("mime_type")
+  data       Bytes    // LONGBLOB for file storage
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("resumes")
+} 
