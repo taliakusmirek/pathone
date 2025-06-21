@@ -7,6 +7,7 @@ import Paywall from './pages/Paywall';
 import DocumentIntake from './pages/DocumentIntake';
 import SecondOpinion from './pages/SecondOpinion';
 import Dashboard from './pages/Dashboard';
+import EB1AForm from './pages/EB1AForm';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/documents" element={<DocumentIntake />} />
           <Route path="/second-opinion" element={<SecondOpinion />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/eb1a-form" element={<EB1AForm />} />
         </Routes>
       </div>
     </Router>
