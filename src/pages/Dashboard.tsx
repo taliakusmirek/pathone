@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Download, 
@@ -31,7 +30,6 @@ interface DownloadItem {
 }
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
   const applicationStatus: ApplicationStatus[] = [
