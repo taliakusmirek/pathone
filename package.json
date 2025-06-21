@@ -1,54 +1,32 @@
 {
-  "name": "pathone",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@types/react-router-dom": "^5.3.3",
-    "lucide-react": "^0.522.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.2",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@types/node": "^24.0.3",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "postcss-flexbugs-fixes": "^5.0.2",
-    "postcss-preset-env": "^10.2.3",
-    "tailwindcss": "^3.4.17"
-  }
+    "name": "visa-fit",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Visa Fit - Employment-based U.S. visa eligibility self-assessment",
+    "scripts": {
+        "dev": "pnpm -r dev",
+        "build": "pnpm -r build",
+        "test": "pnpm -r test",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "lint": "pnpm -r lint",
+        "clean": "pnpm -r clean && rm -rf node_modules",
+        "frontend:dev": "pnpm --filter frontend dev",
+        "backend:dev": "pnpm --filter backend dev",
+        "backend:build": "pnpm --filter backend build"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.53.1",
+        "@typescript-eslint/eslint-plugin": "^6.0.0",
+        "@typescript-eslint/parser": "^6.0.0",
+        "eslint": "^8.45.0",
+        "eslint-config-prettier": "^9.0.0",
+        "eslint-plugin-prettier": "^5.0.0",
+        "prettier": "^3.0.0",
+        "typescript": "^5.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "pnpm": ">=8.0.0"
+    }
 }
