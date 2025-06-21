@@ -75,12 +75,20 @@ cd pathone
 npm install
 ```
 
-3. Start the development server:
+3. Set up environment variables:
+```bash
+# Backend environment variables
+cd backend
+cp .env.example .env
+# Edit .env file and add your Hugging Face API token
+```
+
+4. Start the development server:
 ```bash
 npm start
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+5. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ### Available Scripts
 
