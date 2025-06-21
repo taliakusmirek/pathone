@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -26,7 +26,7 @@ model User {
 model Submission {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
-  answers   Json
+  answers   String   // JSON string for SQLite compatibility
   verdict   String?  // "eligible" | "not_eligible" | "pending"
   createdAt DateTime @default(now()) @map("created_at")
   
