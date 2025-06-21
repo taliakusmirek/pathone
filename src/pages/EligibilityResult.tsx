@@ -3,18 +3,18 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, AlertTriangle, ArrowRight, Download, Users, Award, FileText } from 'lucide-react';
 import { EligibilityData } from '../types';
 
-interface EligibilityResult {
+type EligibilityResultType = {
   status: 'likely-eligible' | 'borderline' | 'not-likely-eligible';
   confidence: number;
   visaType: 'EB-1A' | 'O-1' | 'both' | 'none';
   reasoning: string[];
   nextSteps: string[];
-}
+};
 
 const EligibilityResult: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [result, setResult] = useState<EligibilityResult | null>(null);
+  const [result, setResult] = useState<EligibilityResultType | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const EligibilityResult: React.FC = () => {
     simulateAIProcessing();
   }, [location.state]);
 
-  const generateMockResult = (formData: EligibilityData): EligibilityResult => {
+  const generateMockResult = (formData: EligibilityData): EligibilityResultType => {
     // Simple scoring algorithm
     let score = 0;
     const reasoning: string[] = [];
@@ -74,9 +74,9 @@ const EligibilityResult: React.FC = () => {
     }
 
     // Determine status
-    let status: EligibilityResult['status'];
+    let status: EligibilityResultType['status'];
     let confidence: number;
-    let visaType: EligibilityResult['visaType'];
+    let visaType: EligibilityResultType['visaType'];
 
     if (score >= 70) {
       status = 'likely-eligible';
