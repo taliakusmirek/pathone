@@ -87,4 +87,84 @@ test.describe("Authentication Flow", () => {
         await page.waitForURL("**/dashboard", { timeout: 10000 });
         await expect(page).toHaveURL(/.*dashboard/);
     });
+
+    test("should display user name in dashboard and pre-populate eligibility form", async ({
+        page,
+    }) => {
+        // Login first
+        await page.getByPlaceholder("Enter your email").fill(testUser.email);
+        await page
+            .getByPlaceholder("Enter your password")
+            .fill(testUser.password);
+
+        // Submit form
+        await page.getByRole("button", { name: "Sign In" }).click();
+
+        // Wait for redirect to dashboard
+        await page.waitForURL("**/dashboard", { timeout: 10000 });
+
+        // Check if user name is displayed in welcome message
+        await expect(
+            page.getByText(
+                `Welcome back, ${testUser.firstName} ${testUser.lastName}!`
+            )
+        ).toBeVisible();
+
+        // Navigate to eligibility form
+        await page.getByRole("button", { name: "Start Assessment" }).click();
+
+        // Check if form is pre-populated with user data
+        const nameField = page.getByPlaceholder("Enter your full name");
+        const emailField = page.getByPlaceholder("Enter your email address");
+
+        await expect(nameField).toHaveValue(
+            `${testUser.firstName} ${testUser.lastName}`
+        );
+        await expect(emailField).toHaveValue(testUser.email);
+    });
+
+    test("should validate required fields and prevent progression", async ({
+        page,
+    }) => {
+        // Login first
+        await page.getByPlaceholder("Enter your email").fill(testUser.email);
+        await page
+            .getByPlaceholder("Enter your password")
+            .fill(testUser.password);
+        await page.getByRole("button", { name: "Sign In" }).click();
+        await page.waitForURL("**/dashboard", { timeout: 10000 });
+
+        // Navigate to eligibility form
+        await page.getByRole("button", { name: "Start Assessment" }).click();
+
+        // Clear pre-populated fields to test validation
+        await page.getByPlaceholder("Enter your full name").fill("");
+        await page.getByPlaceholder("Enter your country of origin").fill("");
+
+        // Try to proceed to next step
+        await page.getByRole("button", { name: "Next" }).click();
+
+        // Check if validation errors are displayed
+        await expect(page.getByText("Full name is required")).toBeVisible();
+        await expect(
+            page.getByText("Country of origin is required")
+        ).toBeVisible();
+
+        // Check if Next button is disabled
+        await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
+
+        // Fill required fields
+        await page.getByPlaceholder("Enter your full name").fill("Test User");
+        await page
+            .getByPlaceholder("Enter your country of origin")
+            .fill("South Korea");
+        await page.getByPlaceholder("Enter your age").fill("30");
+
+        // Now Next button should be enabled
+        await expect(page.getByRole("button", { name: "Next" })).toBeEnabled();
+
+        // Should be able to proceed to step 2
+        await page.getByRole("button", { name: "Next" }).click();
+        await expect(page.getByText("Step 2 of 7: Education")).toBeVisible();
+    });
 });
