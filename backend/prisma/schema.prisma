@@ -13,6 +13,8 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
+  firstName String   @default("") @map("first_name")
+  lastName  String   @default("") @map("last_name")
   passHash  String   @map("pass_hash")
   createdAt DateTime @default(now()) @map("created_at")
   

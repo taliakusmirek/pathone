@@ -22,7 +22,7 @@ const router = Router();
  */
 router.post("/signup", validateRequest(signupSchema), async (req, res) => {
     try {
-        const { email, password } = req.validatedData;
+        const { email, firstName, lastName, password } = req.validatedData;
 
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({
@@ -43,11 +43,15 @@ router.post("/signup", validateRequest(signupSchema), async (req, res) => {
         const user = await prisma.user.create({
             data: {
                 email,
+                firstName,
+                lastName,
                 passHash,
             },
             select: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
                 createdAt: true,
             },
         });
@@ -120,6 +124,8 @@ router.post("/login", validateRequest(loginSchema), async (req, res) => {
             user: {
                 id: user.id,
                 email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 createdAt: user.createdAt,
             },
             tokens: {

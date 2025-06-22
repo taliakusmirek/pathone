@@ -4,6 +4,8 @@ import { authAPI } from "../services/api";
 interface User {
     id: number;
     email: string;
+    firstName: string;
+    lastName: string;
     createdAt: string;
 }
 
@@ -21,6 +23,8 @@ interface AuthActions {
     ) => Promise<{ success: boolean; user?: User; error?: string }>;
     signup: (
         email: string,
+        firstName: string,
+        lastName: string,
         password: string
     ) => Promise<{ success: boolean; user?: User; error?: string }>;
     logout: () => void;
@@ -67,11 +71,16 @@ const useAuthStore = create<AuthStore>((set, get) => ({
         }
     },
 
-    signup: async (email, password) => {
+    signup: async (email, firstName, lastName, password) => {
         set({ isLoading: true, error: null });
 
         try {
-            const response = await authAPI.signup(email, password);
+            const response = await authAPI.signup(
+                email,
+                firstName,
+                lastName,
+                password
+            );
             const { user, tokens } = response.data;
 
             // Store tokens

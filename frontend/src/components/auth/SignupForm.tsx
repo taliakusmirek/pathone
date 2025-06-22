@@ -7,6 +7,8 @@ interface SignupFormProps {
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -34,7 +36,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
             return;
         }
 
-        const result = await signup(formData.email, formData.password);
+        const result = await signup(
+            formData.email,
+            formData.firstName,
+            formData.lastName,
+            formData.password
+        );
 
         if (result.success) {
             console.log("Signup successful:", result.user);
@@ -43,6 +50,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
     const isFormValid = () => {
         return (
+            formData.firstName.trim() &&
+            formData.lastName.trim() &&
             formData.email &&
             formData.password &&
             formData.confirmPassword &&
@@ -67,6 +76,44 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                        <label
+                            htmlFor="firstName"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            First Name
+                        </label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter your first name"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="lastName"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            Last Name
+                        </label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter your last name"
+                        />
+                    </div>
+
                     <div>
                         <label
                             htmlFor="email"

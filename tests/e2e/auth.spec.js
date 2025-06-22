@@ -2,6 +2,8 @@ const { test, expect } = require("@playwright/test");
 
 // Test data
 const testUser = {
+    firstName: "Test",
+    lastName: "User",
     email: "test-e2e@example.com",
     password: "TestPassword123",
 };
@@ -42,6 +44,12 @@ test.describe("Authentication Flow", () => {
         await page.getByRole("button", { name: "Sign up here" }).click();
 
         // Fill signup form with valid data
+        await page
+            .getByPlaceholder("Enter your first name")
+            .fill(testUser.firstName);
+        await page
+            .getByPlaceholder("Enter your last name")
+            .fill(testUser.lastName);
         await page.getByPlaceholder("Enter your email").fill(testUser.email);
         await page
             .getByPlaceholder("Create a password")
@@ -56,6 +64,13 @@ test.describe("Authentication Flow", () => {
         // Wait for redirect or success indication
         await page.waitForURL("**/dashboard", { timeout: 10000 });
         await expect(page).toHaveURL(/.*dashboard/);
+
+        // Check if user name is displayed in welcome message
+        await expect(
+            page.getByText(
+                `Welcome back, ${testUser.firstName} ${testUser.lastName}!`
+            )
+        ).toBeVisible();
     });
 
     test("should successfully login with existing user", async ({ page }) => {

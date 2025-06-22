@@ -3,6 +3,14 @@ import { z } from "zod";
 // Auth validation schemas
 export const signupSchema = z.object({
     email: z.string().email("Invalid email format"),
+    firstName: z
+        .string()
+        .min(1, "First name is required")
+        .max(50, "First name must be less than 50 characters"),
+    lastName: z
+        .string()
+        .min(1, "Last name is required")
+        .max(50, "Last name must be less than 50 characters"),
     password: z
         .string()
         .min(8, "Password must be at least 8 characters")
@@ -29,22 +37,26 @@ export const eb1aAssessmentSchema = z.object({
         z.string(),
         z.array(z.string()),
         z.object({
-            user: z.object({
-                educationLevel: z.string().optional()
-            }).optional(),
-            startupAchievements: z.object({
-                funding: z.string().optional(),
-                traction: z.string().optional(),
-                awards: z.array(z.string()).optional(),
-                patents: z.array(z.string()).optional()
-            }).optional(),
+            user: z
+                .object({
+                    educationLevel: z.string().optional(),
+                })
+                .optional(),
+            startupAchievements: z
+                .object({
+                    funding: z.string().optional(),
+                    traction: z.string().optional(),
+                    awards: z.array(z.string()).optional(),
+                    patents: z.array(z.string()).optional(),
+                })
+                .optional(),
             media: z.array(z.string()).optional(),
             speakingExperience: z.array(z.string()).optional(),
             publications: z.array(z.string()).optional(),
             references: z.array(z.string()).optional(),
-            usContacts: z.array(z.string()).optional()
-        })
-    ])
+            usContacts: z.array(z.string()).optional(),
+        }),
+    ]),
 });
 
 /**
