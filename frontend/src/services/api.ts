@@ -4,6 +4,8 @@ import axios, { AxiosResponse } from "axios";
 interface User {
     id: number;
     email: string;
+    firstName: string;
+    lastName: string;
     createdAt: string;
 }
 
@@ -91,9 +93,11 @@ api.interceptors.response.use(
 export const authAPI = {
     signup: (
         email: string,
+        firstName: string,
+        lastName: string,
         password: string
     ): Promise<AxiosResponse<AuthResponse>> =>
-        api.post("/auth/signup", { email, password }),
+        api.post("/auth/signup", { email, firstName, lastName, password }),
 
     login: (
         email: string,
