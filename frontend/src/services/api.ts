@@ -35,6 +35,7 @@ const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    timeout: 10000,
 });
 
 // Request interceptor to add auth token
@@ -109,6 +110,41 @@ export const authAPI = {
         api.post("/auth/refresh", { refreshToken }),
 
     me: (): Promise<AxiosResponse<{ user: User }>> => api.get("/auth/me"),
+};
+
+// Application Status API calls
+export const statusAPI = {
+    getStatus: async () => {
+        const response = await api.get("/status");
+        return response.data;
+    },
+
+    getProgress: async () => {
+        const response = await api.get("/status/progress");
+        return response.data;
+    },
+
+    updateStep: async (step: string, completed: boolean = true) => {
+        const response = await api.put("/status/step", { step, completed });
+        return response.data;
+    },
+};
+
+// EB1A Assessment API calls
+export const eb1aAPI = {
+    assess: async (data: {
+        name: string;
+        countryOfOrigin: string;
+        achievements: any;
+    }) => {
+        const response = await api.post("/eb1a/assess", data);
+        return response.data;
+    },
+
+    getAssessment: async (id: number) => {
+        const response = await api.get(`/eb1a/assessment/${id}`);
+        return response.data;
+    },
 };
 
 export default api;

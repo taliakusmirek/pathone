@@ -5,6 +5,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import eb1aRoutes from "./routes/eb1a.js";
+import statusRoutes from "./routes/status.js";
 
 // Load environment variables
 dotenv.config();
@@ -43,6 +44,9 @@ app.use("/api/auth", authRoutes);
 
 // EB1A assessment routes
 app.use("/api/eb1a", eb1aRoutes);
+
+// Application status routes
+app.use("/api/status", statusRoutes);
 
 // Error handling middleware
 app.use((err, req, res, _next) => {

@@ -167,4 +167,75 @@ test.describe("Authentication Flow", () => {
         await page.getByRole("button", { name: "Next" }).click();
         await expect(page.getByText("Step 2 of 7: Education")).toBeVisible();
     });
+
+    test("should track application status progress after form submission", async ({
+        page,
+    }) => {
+        // Sign up a new user for this test
+        const uniqueEmail = `status-test-${Date.now()}@example.com`;
+
+        await page.getByRole("button", { name: "Sign up here" }).click();
+        await page.getByPlaceholder("Enter your first name").fill("Status");
+        await page.getByPlaceholder("Enter your last name").fill("Test");
+        await page.getByPlaceholder("Enter your email").fill(uniqueEmail);
+        await page.getByPlaceholder("Create a password").fill("Password123!");
+        await page
+            .getByPlaceholder("Confirm your password")
+            .fill("Password123!");
+        await page.getByRole("button", { name: "Create Account" }).click();
+
+        // Wait for redirect to dashboard
+        await page.waitForURL("**/dashboard", { timeout: 10000 });
+
+        // Check initial status - should show 0/5 completed
+        await expect(page.getByText("0/5")).toBeVisible();
+        await expect(page.getByText("0%")).toBeVisible();
+
+        // Navigate to eligibility tab
+        await page.getByRole("button", { name: "Eligibility" }).click();
+
+        // Complete the eligibility form quickly
+        await page.getByPlaceholder("Enter your full name").fill("Status Test");
+        await page
+            .getByPlaceholder("Enter your email address")
+            .fill(uniqueEmail);
+        await page
+            .getByPlaceholder("Enter your country of origin")
+            .fill("Canada");
+        await page.getByPlaceholder("Enter your age").fill("28");
+        await page.getByRole("button", { name: "Next" }).click();
+
+        // Step 2 - Education
+        await page.selectOption("select", "masters");
+        await page.getByRole("button", { name: "Next" }).click();
+
+        // Step 3 - Startup achievements
+        await page.locator("select").first().selectOption("50k-500k");
+        await page.locator("select").nth(1).selectOption("1000-10000");
+        await page.getByRole("button", { name: "Next" }).click();
+
+        // Continue through remaining steps quickly
+        await page.getByRole("button", { name: "Next" }).click(); // Step 4
+        await page.getByRole("button", { name: "Next" }).click(); // Step 5
+        await page.getByRole("button", { name: "Next" }).click(); // Step 6
+
+        // Submit form
+        await page
+            .getByRole("button", { name: "Submit & Check Eligibility" })
+            .click();
+
+        // Wait for result page
+        await page.waitForURL("**/result", { timeout: 15000 });
+
+        // Navigate back to dashboard
+        await page.goto("http://localhost:3000/dashboard");
+
+        // Status should now show eligibility as completed (1/5, 20%)
+        await page.waitForTimeout(2000); // Allow time for status to update
+        await expect(page.getByText("1/5")).toBeVisible();
+        await expect(page.getByText("20%")).toBeVisible();
+
+        // Check that eligibility step shows as completed
+        await expect(page.getByText("Eligibility Assessment")).toBeVisible();
+    });
 });

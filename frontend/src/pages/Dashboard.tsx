@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Home,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import EligibilityForm from "./EligibilityForm";
 import useAuthStore from "../stores/authStore";
+import { statusAPI } from "../services/api";
 
 interface ApplicationStatus {
     status: "in-progress" | "completed" | "pending";
@@ -38,41 +39,79 @@ const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const { logout, user } = useAuthStore();
     const [activeTab, setActiveTab] = useState("overview");
+    const [applicationStatus, setApplicationStatus] = useState<
+        ApplicationStatus[]
+    >([]);
+    const [loading, setLoading] = useState(true);
+    const [progressData, setProgressData] = useState<any>(null);
 
-    const applicationStatus: ApplicationStatus[] = [
-        {
-            status: "completed",
-            step: "Eligibility Assessment",
-            description: "Your profile has been analyzed",
-            completed: true,
-        },
-        {
-            status: "completed",
-            step: "Package Purchase",
-            description: "Premium package purchased",
-            completed: true,
-        },
-        {
-            status: "completed",
-            step: "Document Upload",
-            description: "All supporting documents uploaded",
-            completed: true,
-        },
-        {
-            status: "in-progress",
-            step: "Application Review",
-            description: "Lawyer reviewing your case",
-            completed: false,
-            dueDate: "2024-02-15",
-        },
-        {
-            status: "pending",
-            step: "USCIS Filing",
-            description: "Submit to USCIS",
-            completed: false,
-            dueDate: "2024-03-01",
-        },
-    ];
+    // Fetch application status from API
+    useEffect(() => {
+        const fetchProgress = async () => {
+            try {
+                setLoading(true);
+                const response = await statusAPI.getProgress();
+
+                if (response.success) {
+                    setProgressData(response.progress);
+
+                    // Transform API data to match existing interface
+                    const statusData: ApplicationStatus[] =
+                        response.progress.milestones.map((milestone: any) => ({
+                            status: milestone.status as
+                                | "in-progress"
+                                | "completed"
+                                | "pending",
+                            step: milestone.title,
+                            description: milestone.description,
+                            completed: milestone.completed,
+                            dueDate: milestone.dueDate,
+                        }));
+
+                    setApplicationStatus(statusData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch progress:", error);
+                // Fallback to default status if API fails
+                setApplicationStatus([
+                    {
+                        status: "pending",
+                        step: "Eligibility Assessment",
+                        description: "Complete your eligibility assessment",
+                        completed: false,
+                    },
+                    {
+                        status: "pending",
+                        step: "Package Purchase",
+                        description: "Purchase application package",
+                        completed: false,
+                    },
+                    {
+                        status: "pending",
+                        step: "Document Upload",
+                        description: "Upload supporting documents",
+                        completed: false,
+                    },
+                    {
+                        status: "pending",
+                        step: "Application Review",
+                        description: "Legal review and preparation",
+                        completed: false,
+                    },
+                    {
+                        status: "pending",
+                        step: "USCIS Filing",
+                        description: "Submit to USCIS",
+                        completed: false,
+                    },
+                ]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProgress();
+    }, []);
 
     const downloads: DownloadItem[] = [
         {
@@ -184,35 +223,44 @@ const Dashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Application Status
                 </h3>
-                <div className="space-y-4">
-                    {applicationStatus.map((step, index) => (
-                        <div key={index} className="flex items-start">
-                            <div className="mr-4 mt-1">
-                                {getStatusIcon(step.status)}
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                    <h4
-                                        className={`font-medium ${getStatusColor(step.status)}`}
-                                    >
-                                        {step.step}
-                                    </h4>
-                                    {step.dueDate && (
-                                        <span className="text-sm text-gray-500">
-                                            Due:{" "}
-                                            {new Date(
-                                                step.dueDate
-                                            ).toLocaleDateString()}
-                                        </span>
-                                    )}
+                {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                        <span className="ml-3 text-gray-600">
+                            Loading status...
+                        </span>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {applicationStatus.map((step, index) => (
+                            <div key={index} className="flex items-start">
+                                <div className="mr-4 mt-1">
+                                    {getStatusIcon(step.status)}
                                 </div>
-                                <p className="text-sm text-gray-600 mt-1">
-                                    {step.description}
-                                </p>
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <h4
+                                            className={`font-medium ${getStatusColor(step.status)}`}
+                                        >
+                                            {step.step}
+                                        </h4>
+                                        {step.dueDate && (
+                                            <span className="text-sm text-gray-500">
+                                                Due:{" "}
+                                                {new Date(
+                                                    step.dueDate
+                                                ).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {step.description}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Next Steps */}
@@ -262,21 +310,25 @@ const Dashboard: React.FC = () => {
             <div className="grid md:grid-cols-3 gap-6">
                 <div className="card text-center">
                     <div className="text-3xl font-bold text-primary-600 mb-2">
-                        3/5
+                        {loading
+                            ? "..."
+                            : `${progressData?.stepsCompleted || 0}/${progressData?.totalSteps || 5}`}
                     </div>
                     <div className="text-gray-600">Steps Completed</div>
                 </div>
                 <div className="card text-center">
                     <div className="text-3xl font-bold text-success-600 mb-2">
-                        85%
+                        {loading
+                            ? "..."
+                            : `${progressData?.completionPercentage || 0}%`}
                     </div>
-                    <div className="text-gray-600">Success Probability</div>
+                    <div className="text-gray-600">Completion Progress</div>
                 </div>
                 <div className="card text-center">
                     <div className="text-3xl font-bold text-warning-600 mb-2">
-                        15
+                        {progressData?.currentStep || "eligibility"}
                     </div>
-                    <div className="text-gray-600">Days Remaining</div>
+                    <div className="text-gray-600">Current Step</div>
                 </div>
             </div>
         </div>

@@ -19,8 +19,9 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   
   // Relations
-  submissions Submission[]
-  resumes     Resume[]
+  submissions       Submission[]
+  resumes          Resume[]
+  applicationStatus ApplicationStatus?
   
   @@map("users")
 }
@@ -64,4 +65,27 @@ model EB1AAssessment {
   createdAt       DateTime @default(now()) @map("created_at")
   
   @@map("eb1a_assessments")
+}
+
+model ApplicationStatus {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @unique @map("user_id")
+  eligibilityCompleted  Boolean  @default(false) @map("eligibility_completed")
+  eligibilityCompletedAt DateTime? @map("eligibility_completed_at")
+  packagePurchased      Boolean  @default(false) @map("package_purchased")
+  packagePurchasedAt    DateTime? @map("package_purchased_at")
+  documentsUploaded     Boolean  @default(false) @map("documents_uploaded")
+  documentsUploadedAt   DateTime? @map("documents_uploaded_at")
+  applicationReviewed   Boolean  @default(false) @map("application_reviewed")
+  applicationReviewedAt DateTime? @map("application_reviewed_at")
+  uscisSubmitted        Boolean  @default(false) @map("uscis_submitted")
+  uscisSubmittedAt      DateTime? @map("uscis_submitted_at")
+  currentStep           String   @default("eligibility") @map("current_step") // "eligibility" | "payment" | "documents" | "review" | "uscis" | "completed"
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("application_status")
 } 

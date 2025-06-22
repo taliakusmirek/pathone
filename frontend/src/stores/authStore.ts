@@ -125,8 +125,50 @@ const useAuthStore = create<AuthStore>((set, get) => ({
     initializeAuth: () => {
         const token = localStorage.getItem("accessToken");
         if (token) {
-            // TODO: Verify token with backend or decode to get user info
-            set({ isAuthenticated: true });
+            try {
+                // Decode JWT token to extract user info (without verifying signature)
+                const base64Url = token.split(".")[1];
+                const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+                const jsonPayload = decodeURIComponent(
+                    atob(base64)
+                        .split("")
+                        .map(
+                            (c) =>
+                                "%" +
+                                ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+                        )
+                        .join("")
+                );
+
+                const payload = JSON.parse(jsonPayload);
+
+                // Check if token is expired
+                if (payload.exp && payload.exp < Date.now() / 1000) {
+                    // Token expired, remove it
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("refreshToken");
+                    return;
+                }
+
+                // Set user info from token
+                const user = {
+                    id: payload.userId || payload.id,
+                    email: payload.email,
+                    firstName: payload.firstName || "User",
+                    lastName: payload.lastName || "",
+                    createdAt: new Date().toISOString(), // Fallback
+                };
+
+                set({
+                    isAuthenticated: true,
+                    user: user,
+                });
+            } catch (error) {
+                console.error("Invalid token:", error);
+                // Invalid token, remove it
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
+            }
         }
     },
 }));

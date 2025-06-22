@@ -307,6 +307,9 @@ const EligibilityForm: React.FC<EligibilityFormProps> = ({
         setIsSubmitting(true);
 
         try {
+            // Get auth token
+            const token = localStorage.getItem("token");
+
             // Prepare data for API
             const assessmentData = {
                 name: formData.user?.name || "",
@@ -331,6 +334,26 @@ const EligibilityForm: React.FC<EligibilityFormProps> = ({
             }
 
             const result = await response.json();
+
+            // Update application status to mark eligibility as completed
+            if (token) {
+                try {
+                    await fetch("http://localhost:4000/api/status/step", {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            step: "eligibility",
+                            completed: true,
+                        }),
+                    });
+                } catch (statusError) {
+                    console.error("Status update error:", statusError);
+                    // Don't fail the whole process if status update fails
+                }
+            }
 
             // Navigate to results with AI assessment data
             navigate("/result", {
