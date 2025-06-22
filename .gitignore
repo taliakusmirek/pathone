@@ -54,3 +54,11 @@ Thumbs.db
 
 # Cursor & other tools (optional - remove if you want to keep these)
 .specstory/
+
+# databases & data files
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
